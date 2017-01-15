@@ -15,7 +15,9 @@
 // Package portmidi provides PortMidi bindings.
 package portmidi
 
-// #cgo LDFLAGS: -lportmidi
+// #cgo CFLAGS:  -I/usr/local/include
+// #cgo LDFLAGS: -lportmidi -L/usr/local/lib
+//
 // #include <stdlib.h>
 // #include <portmidi.h>
 // #include <porttime.h>
@@ -39,7 +41,10 @@ type DeviceInfo struct {
 
 type Timestamp int64
 
-// Initializes the portmidi.
+// Initialize initializes the portmidi. Needs to be called before
+// making any other call from the portmidi package.
+// Once portmidi package is no longer required, Terminate should be
+// called to free the underlying resources.
 func Initialize() error {
 	if code := C.Pm_Initialize(); code != 0 {
 		return convertToError(code)
@@ -48,7 +53,7 @@ func Initialize() error {
 	return nil
 }
 
-// Terminates and cleans up the midi streams.
+// Terminate terminates and cleans up the midi streams.
 func Terminate() error {
 	C.Pt_Stop()
 	return convertToError(C.Pm_Terminate())
@@ -64,14 +69,15 @@ func GetDefaultOutputDeviceId() DeviceID {
 	return DeviceID(C.Pm_GetDefaultOutputDeviceID())
 }
 
-// Returns the number of MIDI devices.
+// CountDevices returns the number of MIDI devices.
 func CountDevices() int {
 	return int(C.Pm_CountDevices())
 }
 
-// Returns the device info for the device indentified with deviceId.
-func GetDeviceInfo(deviceId DeviceID) *DeviceInfo {
-	info := C.Pm_GetDeviceInfo(C.PmDeviceID(deviceId))
+// Info returns the device info for the device indentified with deviceID.
+func Info(deviceID DeviceID) *DeviceInfo {
+	info := C.Pm_GetDeviceInfo(C.PmDeviceID(deviceID))
+
 	return &DeviceInfo{
 		Interface:         C.GoString(info.interf),
 		Name:              C.GoString(info.name),
@@ -81,12 +87,15 @@ func GetDeviceInfo(deviceId DeviceID) *DeviceInfo {
 	}
 }
 
-// Returns the portmidi timer's current time.
+// Time returns the portmidi timer's current time.
 func Time() Timestamp {
 	return Timestamp(C.Pt_Time())
 }
 
 // convertToError converts a portmidi error code to a Go error.
 func convertToError(code C.PmError) error {
+	if code >= 0 {
+		return nil
+	}
 	return errors.New(C.GoString(C.Pm_GetErrorText(code)))
 }

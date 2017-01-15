@@ -7,8 +7,8 @@ import (
 	"github.com/rakyll/portmidi"
 )
 
-func ExampleWriteSysEx() {
-	out, err := portmidi.NewOutputStream(portmidi.GetDefaultOutputDeviceId(), 1024, 0)
+func ExampleStream_WriteSysEx() {
+	out, err := portmidi.NewOutputStream(portmidi.DefaultOutputDeviceID(), 1024, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -18,8 +18,8 @@ func ExampleWriteSysEx() {
 	}
 }
 
-func ExampleWriteSysExBytes() {
-	out, err := portmidi.NewOutputStream(portmidi.GetDefaultOutputDeviceId(), 1024, 0)
+func ExampleStream_WriteSysExBytes() {
+	out, err := portmidi.NewOutputStream(portmidi.DefaultOutputDeviceID(), 1024, 0)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -29,8 +29,8 @@ func ExampleWriteSysExBytes() {
 	}
 }
 
-func ExampleReadSysExBytes() {
-	in, err := portmidi.NewInputStream(portmidi.GetDefaultInputDeviceId(), 1024)
+func ExampleStream_ReadSysExBytes() {
+	in, err := portmidi.NewInputStream(portmidi.DefaultInputDeviceID(), 1024)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -42,5 +42,23 @@ func ExampleReadSysExBytes() {
 
 	for i, b := range msg {
 		fmt.Printf("SysEx message byte %d = %02x\n", i, b)
+	}
+}
+
+func ExampleStream_Poll() {
+	in, err := portmidi.NewInputStream(portmidi.DefaultInputDeviceID(), 1024)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := in.Poll()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if result {
+		fmt.Println("New messages in the queue!")
+	} else {
+		fmt.Println("No new messages in the queue :(")
 	}
 }
